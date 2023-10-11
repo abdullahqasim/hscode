@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::dropIfExists('hs_codes');
-        Schema::create('hs_codes', function (Blueprint $table) {
+        Schema::create('chapter_keywords', function (Blueprint $table) {
             $table->id();
-            $table->text('hscode_id');
-            $table->tinyInteger('flag')->nullable();
+            $table->unsignedBigInteger('chapter_id');
+            $table->string('keyword', 255);
             $table->timestamps();
+
+            $table->foreign('chapter_id')->references('id')->on('chapters');
         });
     }
 
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('hs_codes');
+        Schema::dropIfExists('chapter_keywords');
     }
 };
