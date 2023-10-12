@@ -54,7 +54,7 @@ return [
     'channels' => [
         'stack' => [
             'driver' => 'stack',
-            'channels' => ['single'],
+            'channels' => ['single','daily', 'console'],
             'ignore_exceptions' => false,
         ],
 
@@ -63,6 +63,12 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
+        ],
+        'console' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/console.log'),
+            'level' => 'debug',
+            'days' => 7,
         ],
 
         'daily' => [

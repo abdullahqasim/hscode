@@ -2,41 +2,34 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Chapter;
 use Illuminate\Http\Request;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
 
 class HSCodeController extends Controller
 {
-    private Client $httpClient;
-
-    public function __construct(Client $httpClient)
-    {
-        $this->httpClient = $httpClient;
-    }
-
     public function fetchHSCode(Request $request)
     {
-        $searchQuery = urldecode($request->keywords);
-//        dd($searchQuery);
+        $results = Chapter::where(function ($query)use($request) {
+            $query->where('formatted_description', 'LIKE', '%'.$request->keywords.'%')
+                ->orWhere('description', 'LIKE', '%'.$request->keywords.'%');
+        })->pluck('goods_nomenclature_item_id')->toArray();
 
-        try {
-            $response = $this->httpClient->request('GET', config('app.api.commodities'), [
-                'query' => $searchQuery,
-//                'query' => ['q' => $searchQuery],
-                'headers' => array(
-                    'User-Agent' => 'product / product-version'
-                )
-            ]);
+        $uniqueResults = array_unique($results);
 
-            if ($response->getStatusCode() === 200) {
-                $data = json_decode($response->getBody(), true);
-                return response()->json($data['included']);
-            } else {
-                return response()->json(['error' => 'Unexpected response from the API'], $response->getStatusCode());
-            }
-        } catch (RequestException $e) {
-            return response()->json(['error' => 'API request failed: ' . $e->getMessage()], 500);
+        if (empty($uniqueResults)) {
+            $response = [
+                'success' => false,
+                'message' => 'No results found for keyword ' .$request->keywords,
+                'data' => [],
+            ];
+        } else {
+            $response = [
+                'success' => true,
+                'message' => 'Search results for keyword '.$request->keywords,
+                'data' => $uniqueResults,
+            ];
         }
+
+        return response()->json($response, 200);
     }
 }
